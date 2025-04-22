@@ -1,50 +1,42 @@
-const express = require('express');
-const cors = require('cors');
-require('dotenv').config();
 const { generateSummaryAndKeyPoints } = require('./utils/generateSummaryAndKeyPoints');
 const extractTextFromURL = require('./utils/extractTextFromURL');
+require('dotenv').config();
 
-
-const port = process.env.PORT || 8080;
-
-
-// Vercel Serverless Function Handler
 module.exports = async (req, res) => {
-    const app = express(); // Create a new express app instance for each invocation
-    const corsOptions = {
-        origin: '*', // Allow all origins (less secure for production)
-    };
-    app.use(cors(corsOptions));
-    app.use(express.json());
-    // app.post('/api/summarize', async (req, res) => {
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
-    if (req.method === 'POST' && req.url === '/api/summarize') {
-        try {
-            const { url } = req.body;
-            if (!url) {
-                return res.status(400).json({ error: 'URL is required.' });
-            }
+  if (req.method === 'OPTIONS') {
+    res.status(200).end();
+    return;
+  }
 
-            const extractedText = await extractTextFromURL(url); 
-            if (!extractedText) {
-                return res.status(500).json({ error: 'Failed to extract content from the URL.' });
-            }
+  if (req.method !== 'POST') {
+    res.status(405).json({ error: 'Method Not Allowed' });
+    return;
+  }
 
-            const aiResponse = await generateSummaryAndKeyPoints(extractedText);
-            console.log(aiResponse, "aiResponse");
+  try {
+    const { url } = req.body;
 
-            res.json({ url, extractedText: extractedText.slice(0, 500) + '...', ...aiResponse });
-
-        } catch (error) {
-            console.log(error.message, 'error message');
-            res.status(500).json({ error: 'Internal Server Error', details: error.message });
-        }
-    // })
-    } else {
-        res.status(404).send('Not Found');
+    if (!url) {
+      return res.status(400).json({ error: 'URL is required.' });
     }
-};
 
-// app.listen(port, () => {
-//     console.log(`Server listening on port ${port}`);
-// });
+    const extractedText = await extractTextFromURL(url);
+    if (!extractedText) {
+      return res.status(500).json({ error: 'Failed to extract content from the URL.' });
+    }
+
+    const aiResponse = await generateSummaryAndKeyPoints(extractedText);
+    res.json({
+      url,
+      extractedText: extractedText.slice(0, 500) + '...',
+      ...aiResponse,
+    });
+  } catch (error) {
+    console.error(error.message, 'Error');
+    res.status(500).json({ error: 'Internal Server Error', details: error.message });
+  }
+};
