@@ -11,7 +11,12 @@ const port = process.env.PORT || 8080;
 // Vercel Serverless Function Handler
 module.exports = async (req, res) => {
     const app = express(); // Create a new express app instance for each invocation
-    app.use(cors());
+    const corsOptions = {
+        origin: '*', // Allow all origins (less secure for production)
+        methods: 'POST',
+        allowedHeaders: 'Content-Type',
+    };
+    app.use(cors(corsOptions));
     app.use(express.json());
     // app.post('/api/summarize', async (req, res) => {
 
