@@ -13,8 +13,6 @@ module.exports = async (req, res) => {
     const app = express(); // Create a new express app instance for each invocation
     const corsOptions = {
         origin: '*', // Allow all origins (less secure for production)
-        methods: 'POST',
-        allowedHeaders: 'Content-Type',
     };
     app.use(cors(corsOptions));
     app.use(express.json());
