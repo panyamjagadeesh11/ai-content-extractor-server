@@ -11,8 +11,5 @@
         "src": "/api/summarize",
         "dest": "index.js" 
       }
-    ],
-    "environment": {
-      "OPENAI_API_KEY": { "value": "@openai_api_key" }
-    }
+    ]
   }
