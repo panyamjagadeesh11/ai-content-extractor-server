@@ -1,3 +1,12 @@
+require('dotenv').config();
+const { GoogleGenerativeAI } = require('@google/generative-ai');
+const apiKey = process.env.OPENAI_API_KEY;
+console.log("API Key from env:", apiKey ? "***" + apiKey.slice(-5) : "API Key not found in env");
+
+// Initialize GoogleGenerativeAI without the key here for now
+const genAI = new GoogleGenerativeAI(apiKey);
+console.log("genAI object (without key initially):", genAI);
+
 async function generateSummaryAndKeyPoints(text) {
     console.log("Inside generateSummaryAndKeyPoints");
     const model = genAI.getGenerativeModel({

@@ -1,3 +1,5 @@
+const axios = require('axios');
+const cheerio = require('cheerio');
 
 async function extractTextFromURL(url) {
     // ... your existing extractTextFromURL code ...

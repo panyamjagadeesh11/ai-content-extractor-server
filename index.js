@@ -1,48 +1,47 @@
 const express = require('express');
 const cors = require('cors');
-const axios = require('axios');
-const cheerio = require('cheerio');
 require('dotenv').config();
-const { GoogleGenerativeAI } = require('@google/generative-ai');
 const { generateSummaryAndKeyPoints } = require('./utils/generateSummaryAndKeyPoints');
 const extractTextFromURL = require('./utils/extractTextFromURL');
 
-const app = express();
+
 const port = process.env.PORT || 8080;
 
-app.use(cors());
-app.use(express.json());
 
-const apiKey = process.env.OPENAI_API_KEY;
-console.log("API Key from env:", apiKey ? "***" + apiKey : "API Key not found in env");
+// Vercel Serverless Function Handler
+module.exports = async (req, res) => {
+    const app = express(); // Create a new express app instance for each invocation
+    app.use(cors());
+    app.use(express.json());
+    // app.post('/api/summarize', async (req, res) => {
 
-// Initialize GoogleGenerativeAI without the key here for now
-const genAI = new GoogleGenerativeAI(apiKey);
-console.log("genAI object (without key initially):", genAI);
+    if (req.method === 'POST' && req.url === '/api/summarize') {
+        try {
+            const { url } = req.body;
+            if (!url) {
+                return res.status(400).json({ error: 'URL is required.' });
+            }
 
-app.post('/api/summarize', async (req, res) => {
-    try {
-        const { url } = req.body;
-        if (!url) {
-            return res.status(400).json({ error: 'URL is required.' });
+            const extractedText = await extractTextFromURL(url); 
+            if (!extractedText) {
+                return res.status(500).json({ error: 'Failed to extract content from the URL.' });
+            }
+
+            const aiResponse = await generateSummaryAndKeyPoints(extractedText);
+            console.log(aiResponse, "aiResponse");
+
+            res.json({ url, extractedText: extractedText.slice(0, 500) + '...', ...aiResponse });
+
+        } catch (error) {
+            console.log(error.message, 'error message');
+            res.status(500).json({ error: 'Internal Server Error', details: error.message });
         }
-
-        const extractedText = await extractTextFromURL(url);
-        if (!extractedText) {
-            return res.status(500).json({ error: 'Failed to extract content from the URL.' });
-        }
-
-        const aiResponse = await generateSummaryAndKeyPoints(extractedText);
-        console.log(aiResponse, "aiResponse");
-
-        res.json({ url, extractedText: extractedText.slice(0, 500) + '...', ...aiResponse });
-
-    } catch (error) {
-        console.log(error.message, 'error message');
-
+    // })
+    } else {
+        res.status(404).send('Not Found');
     }
-});
+};
 
-app.listen(port, () => {
-    console.log(`Server listening on port ${port}`);
-});
+// app.listen(port, () => {
+//     console.log(`Server listening on port ${port}`);
+// });

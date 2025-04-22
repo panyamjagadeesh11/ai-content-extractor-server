@@ -1,0 +1,18 @@
+{
+    "version": 2,
+    "builds": [
+      {
+        "src": "index.js", 
+        "use": "@vercel/node"
+      }
+    ],
+    "routes": [
+      {
+        "src": "/api/summarize",
+        "dest": "index.js" 
+      }
+    ],
+    "environment": {
+      "OPENAI_API_KEY": { "value": "@openai_api_key" }
+    }
+  }
